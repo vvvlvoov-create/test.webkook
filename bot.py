@@ -311,28 +311,6 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
     else:
         logging.info("ℹ️ Нет записей для PD листа")
 
-async def schedule_posts(application: Application):
-    """Настройка расписания автопостинга"""
-    job_queue = application.job_queue
-    
-    # PD лист в 05:00
-    job_queue.run_daily(
-        post_pd_list,
-        time=PD_POST_TIME,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        name="post_pd_list"
-    )
-    
-    # RR лист в 00:00
-    job_queue.run_daily(
-        post_rr_list,
-        time=RR_POST_TIME,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        name="post_rr_list"
-    )
-    
-    logging.info(f"📅 Расписание настроено: PD в {PD_POST_TIME}, RR в {RR_POST_TIME}")
-
 async def view_lists_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показывает текущие собранные листы"""
     query = update.callback_query
@@ -516,6 +494,32 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     error_msg = str(context.error)
     logging.error(f"Ошибка: {error_msg}", exc_info=context.error)
 
+def setup_schedule(application: Application):
+    """Настройка расписания автопостинга"""
+    job_queue = application.job_queue
+    
+    if job_queue is None:
+        logging.error("❌ Job Queue не инициализирована")
+        return
+    
+    # PD лист в 05:00
+    job_queue.run_daily(
+        post_pd_list,
+        time=PD_POST_TIME,
+        days=(0, 1, 2, 3, 4, 5, 6),
+        name="post_pd_list"
+    )
+    
+    # RR лист в 00:00
+    job_queue.run_daily(
+        post_rr_list,
+        time=RR_POST_TIME,
+        days=(0, 1, 2, 3, 4, 5, 6),
+        name="post_rr_list"
+    )
+    
+    logging.info(f"📅 Расписание настроено: PD в {PD_POST_TIME}, RR в {RR_POST_TIME}")
+
 def main():
     """Основная функция"""
     logging.info("🚀 Запуск бота KF Black Russia...")
@@ -534,8 +538,8 @@ def main():
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_error_handler(error_handler)
     
-    # Настраиваем расписание автопостинга
-    asyncio.get_event_loop().run_until_complete(schedule_posts(application))
+    # Настраиваем расписание автопостинга ПОСЛЕ создания приложения
+    setup_schedule(application)
     
     # Запускаем в режиме polling
     logging.info("🚀 Запуск в режиме polling...")
