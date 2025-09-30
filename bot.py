@@ -109,9 +109,10 @@ user_states = {}
 rr_entries = []  # Хранит записи RR листа
 pd_entries = []  # Хранит записи PD листа
 
-# Время постинга - ИСПРАВЛЕНО
+# Время постинга и очистки
 PD_POST_TIME = time(5, 0, 0, tzinfo=MOSCOW_TZ)  # 05:00 МСК - PD лист
 RR_POST_TIME = time(0, 0, 0, tzinfo=MOSCOW_TZ)  # 00:00 МСК - RR лист
+CLEANUP_TIME = time(23, 59, 0, tzinfo=MOSCOW_TZ)  # 23:59 МСК - ежедневный сброс
 
 def create_main_menu():
     """Создает главное меню"""
@@ -162,6 +163,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📢 Автопостинг:
 • RR лист публикуется в 00:00
 • PD лист публикуется в 05:00
+• 🧹 Ежедневный сброс в 23:59
     """
     
     await update.message.reply_text(welcome_text, reply_markup=keyboard)
@@ -188,8 +190,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📢 Автопостинг:
 • RR лист публикуется в 00:00
 • PD лист публикуется в 05:00
+• 🧹 Ежедневный сброс в 23:59
 
-Если бот не отвечает - проверьте время и выберите правильный тип листа.
+Каждый день в 23:59 все листы очищаются и начинается новый день!
     """
     
     keyboard = create_main_menu()
@@ -209,7 +212,8 @@ async def format_rr_list():
         servers_data[server].append(entry)
     
     # Форматируем текст
-    text = "🚨 <b>RR ЛИСТ</b> 🚨\n"
+    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
+    text = f"🚨 <b>RR ЛИСТ - {today}</b> 🚨\n"
     text += "⏰ Время публикации: 00:00 МСК\n\n"
     
     for server, entries in servers_data.items():
@@ -249,7 +253,8 @@ async def format_pd_list():
             garages_data[time_key][server].append(entry)
     
     # Форматируем текст
-    text = "🏥 <b>PD ЛИСТ</b> 🏥\n"
+    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
+    text = f"🏥 <b>PD ЛИСТ - {today}</b> 🏥\n"
     text += "⏰ Время публикации: 05:00 МСК\n\n"
     
     # Дома
@@ -288,7 +293,8 @@ async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML'
             )
             logging.info("✅ RR лист опубликован в канал")
-            rr_entries.clear()  # Очищаем после публикации
+            # Очищаем RR лист после публикации
+            rr_entries.clear()
         except Exception as e:
             logging.error(f"❌ Ошибка отправки RR листа: {e}")
     else:
@@ -305,11 +311,44 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML'
             )
             logging.info("✅ PD лист опубликован в канал")
-            pd_entries.clear()  # Очищаем после публикации
+            # Очищаем PD лист после публикации
+            pd_entries.clear()
         except Exception as e:
             logging.error(f"❌ Ошибка отправки PD листа: {e}")
     else:
         logging.info("ℹ️ Нет записей для PD листа")
+
+async def daily_cleanup(context: ContextTypes.DEFAULT_TYPE):
+    """Ежедневный сброс всех листов в 23:59"""
+    rr_count = len(rr_entries)
+    pd_count = len(pd_entries)
+    
+    # Очищаем все записи
+    rr_entries.clear()
+    pd_entries.clear()
+    user_states.clear()
+    
+    # Отправляем уведомление в канал
+    try:
+        today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
+        cleanup_text = f"""
+🧹 <b>ЕЖЕДНЕВНЫЙ СБРОС - {today}</b>
+
+✅ Все листы очищены:
+• RR записей удалено: {rr_count}
+• PD записей удалено: {pd_count}
+
+🔄 Новый день начнется в 00:00!
+        """
+        
+        await context.bot.send_message(
+            chat_id=CHAT_ID,
+            text=cleanup_text,
+            parse_mode='HTML'
+        )
+        logging.info(f"🧹 Ежедневный сброс в 23:59: удалено {rr_count} RR и {pd_count} PD записей")
+    except Exception as e:
+        logging.error(f"❌ Ошибка отправки уведомления о сбросе: {e}")
 
 async def view_lists_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показывает текущие собранные листы"""
@@ -317,21 +356,25 @@ async def view_lists_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     
     now = datetime.now(MOSCOW_TZ).time()
+    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
     if time(0, 0) <= now <= time(5, 0):
         # Время RR
         if rr_entries:
             rr_text = await format_rr_list()
-            text = f"📋 <b>Текущий RR лист</b> (будет опубликован в 00:00):\n\n{rr_text}"
+            text = f"📋 <b>Текущий RR лист на {today}</b> (будет опубликован в 00:00):\n\n{rr_text}"
         else:
-            text = "📋 RR лист пока пуст"
+            text = f"📋 RR лист на {today} пока пуст"
     else:
         # Время PD
         if pd_entries:
             pd_text = await format_pd_list()
-            text = f"🏥 <b>Текущий PD лист</b> (будет опубликован в 05:00):\n\n{pd_text}"
+            text = f"🏥 <b>Текущий PD лист на {today}</b> (будет опубликован в 05:00):\n\n{pd_text}"
         else:
-            text = "🏥 PD лист пока пуст"
+            text = f"🏥 PD лист на {today} пока пуст"
+    
+    # Добавляем информацию о сбросе
+    text += f"\n\n🧹 <i>Ежедневный сброс в 23:59</i>"
     
     keyboard = create_main_menu()
     await query.edit_message_text(text, reply_markup=keyboard, parse_mode='HTML')
@@ -422,6 +465,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif data.startswith("server_"):
         server_name = data.split('_', 1)[1]
+        today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
         
         if user_states[user_id]['type'] == 'rr':
             # Для RR листа - добавляем запись
@@ -434,7 +478,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             rr_text = await format_rr_list()
             response_text = f"""
-✅ Запись добавлена в RR лист!
+✅ Запись добавлена в RR лист на {today}!
 
 Сервер: {server_name}
 Тип: RR лист
@@ -442,6 +486,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📋 Запись будет опубликована в 00:00
 Текущий RR лист:
 {rr_text}
+
+🧹 Ежедневный сброс в 23:59
             """
             
             keyboard = InlineKeyboardMarkup([[
@@ -467,7 +513,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             pd_text = await format_pd_list()
             response_text = f"""
-✅ Запись добавлена в PD лист!
+✅ Запись добавлена в PD лист на {today}!
 
 Сервер: {server_name}
 Категория: {category_name}
@@ -476,6 +522,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🏥 Запись будет опубликована в 05:00
 Текущий PD лист:
 {pd_text}
+
+🧹 Ежедневный сброс в 23:59
             """
             
             keyboard = InlineKeyboardMarkup([[
@@ -518,7 +566,15 @@ def setup_schedule(application: Application):
         name="post_rr_list"
     )
     
-    logging.info(f"📅 Расписание настроено: PD в {PD_POST_TIME}, RR в {RR_POST_TIME}")
+    # Ежедневный сброс в 23:59
+    job_queue.run_daily(
+        daily_cleanup,
+        time=CLEANUP_TIME,
+        days=(0, 1, 2, 3, 4, 5, 6),
+        name="daily_cleanup"
+    )
+    
+    logging.info(f"📅 Расписание настроено: PD в {PD_POST_TIME}, RR в {RR_POST_TIME}, сброс в {CLEANUP_TIME}")
 
 def main():
     """Основная функция"""
