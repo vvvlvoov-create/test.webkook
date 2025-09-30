@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: kfblackrussia-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 7719252121:AAEUyzzdo1JjYVfNv1uN_Y7PQFHR6de3T1o
+      - key: CHAT_ID
+        value: "@kfblackrussia"
+      - key: CHANNEL_USERNAME
+        value: "@kfblackrussia"
+      - key: PYTHON_VERSION
+        value: 3.11.0
