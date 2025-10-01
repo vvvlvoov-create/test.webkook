@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 
 # Конфигурация
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '7719252121:AAEUyzzdo1JjYVfNv1uN_Y7PQFHR6de3T1o')
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 CHAT_ID = os.environ.get('CHAT_ID', '@kfblackrussia')
 MOSCOW_TZ = pytz.timezone('Europe/Moscow')
 
@@ -200,35 +200,128 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def format_rr_list():
     """Форматирует RR лист для постинга"""
-    if not rr_entries:
-        return "📋 RR Лист на сегодня пуст"
+    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
-    # Группируем по серверам
-    servers_data = {}
+    # Создаем базовую структуру всех серверов
+    all_servers = {
+        '👮‍♂Череповец': '-',
+        '🐀Магадан': '-',
+        '🏰 ᴘᴏᴅᴏʟsᴋ': '-',
+        '🏙 sᴜʀɢᴜᴛ': '-',
+        '🏍 ɪᴢʜᴇᴠsᴋ': '-',
+        '🎄 ᴛᴏᴍsᴋ': '-',
+        '🐿 ᴛᴠᴇʀ': '-',
+        '🐦‍🔥 ᴠᴏʟᴏɢᴅᴀ': '-',
+        '🦁 ᴛᴀɢᴀɴʀᴏɢ': '-',
+        '🌼 ɴᴏᴠɢᴏʀᴏᴅ': '-',
+        '🫐 ᴋᴀʟᴜɢᴀ': '-',
+        '😹 ᴠʟᴀᴅɪᴍɪʀ': '-',
+        '🐲 ᴋᴏsᴛʀᴏᴍᴀ': '-',
+        '🦎 ᴄʜɪᴛᴀ': '-',
+        '🧣 ᴀsᴛʀᴀᴋʜᴀɴ': '-',
+        '👜 ʙʀᴀᴛsᴋ': '-',
+        '🥐 ᴛᴀᴍʙᴏᴠ': '-',
+        '🥽 ʏᴀᴋᴜᴛsᴋ': '-',
+        '🍭 ᴜʟʏᴀɴᴏᴠsᴋ': '-',
+        '🎈 ʟɪᴘᴇᴛsᴋ': '-',
+        '💦 ʙᴀʀɴᴀᴜʟ': '-',
+        '🏛 ʏᴀʀᴏsʟᴀᴠʟ': '-',
+        '🦅 ᴏʀᴇʟ': '-',
+        '🧸 ʙʀʏᴀɴsᴋ': '-',
+        '🪭 ᴘsᴋᴏᴠ': '-',
+        '🫚 sᴍᴏʟᴇɴsᴋ': '-',
+        '🪼 sᴛᴀᴠʀᴏᴘᴏʟ': '-',
+        '🪅 ɪᴠᴀɴᴏᴠᴏ': '-',
+        '🪸 ᴛᴏʟʏᴀᴛᴛɪ': '-',
+        '🐋 ᴛʏᴜᴍᴇɴ': '-',
+        '🌺 ᴋᴇᴍᴇʀᴏᴠᴏ': '-',
+        '🔫 ᴋɪʀᴏᴠ': '-',
+        '🍖 ᴏʀᴇɴʙᴜʀɢ': '-',
+        '🥋 ᴀʀᴋʜᴀɴɢᴇʟsᴋ': '-',
+        '🃏 ᴋᴜʀsᴋ': '-',
+        '🎳 ᴍᴜʀᴍᴀɴsᴋ': '-',
+        '🎷 ᴘᴇɴᴢᴀ': '-',
+        '🎭 ʀʏᴀᴢᴀɴ': '-',
+        '⛳ ᴛᴜʟᴀ': '-',
+        '🏟 ᴘᴇʀᴍ': '-',
+        '🐨 ᴋʜᴀʙᴀʀᴏᴠsᴋ': '-',
+        '🪄 ᴄʜᴇʙᴏᴋsᴀʀ': '-',
+        '🖇 ᴋʀᴀsɴᴏʏᴀʀsᴋ': '-',
+        '🕊 ᴄʜᴇʟʏᴀʙɪɴsᴋ': '-',
+        '👒 ᴋᴀʟɪɴɪɴɢʀᴀᴅ': '-',
+        '🧶 ᴠʟᴀᴅɪᴠᴏsᴛᴏᴋ': '-',
+        '🌂 ᴠʟᴀᴅɪᴋᴀᴠᴋᴀᴢ': '-',
+        '⛑️ ᴍᴀᴋʜᴀᴄʜᴋᴀʟᴀ': '-',
+        '🎓 ʙᴇʟɢᴏʀᴏᴅ': '-',
+        '👑 ᴠᴏʀᴏɴᴇᴢʜ': '-',
+        '🎒 ᴠᴏʟɢᴏɢʀᴀᴅ': '-',
+        '🌪 ɪʀᴋᴜᴛsᴋ': '-',
+        '🪙 ᴏᴍsᴋ': '-',
+        '🐉 sᴀʀᴀᴛᴏᴠ': '-',
+        '🍙 ɢʀᴏᴢɴʏ': '-',
+        '🍃 ɴᴏᴠᴏsɪʙ': '-',
+        '🪿 ᴀʀᴢᴀᴍᴀs': '-',
+        '🪻 ᴋʀᴀsɴᴏᴅᴀʀ': '-',
+        '📗 ᴇᴋʙ': '-',
+        '🪺 ᴀɴᴀᴘᴀ': '-',
+        '🍺 ʀᴏsᴛᴏᴠ': '-',
+        '🎧 sᴀᴍᴀʀᴀ': '-',
+        '🏛 ᴋᴀᴢᴀɴ': '-',
+        '🌊 sᴏᴄʜɪ': '-',
+        '🌪 ᴜғᴀ': '-',
+        '🌉 sᴘʙ': '-',
+        '🌇 ᴍᴏsᴄᴏᴡ': '-',
+        '🤎 ᴄʜᴏᴄᴏ': '-',
+        '📕 ᴄʜɪʟʟɪ': '-',
+        '❄ ɪᴄᴇ': '-',
+        '📓 ɢʀᴀʏ': '-',
+        '📘 ᴀǫᴜᴀ': '-',
+        '🩶 ᴘʟᴀᴛɪɴᴜᴍ': '-',
+        '💙 ᴀᴢᴜʀᴇ': '-',
+        '💛️ ɢᴏʟᴅ': '-',
+        '❤‍🔥 ᴄʀɪᴍsᴏɴ': '-',
+        '🩷 ᴍᴀɢᴇɴᴛᴀ': '-',
+        '🤍 ᴡʜɪᴛᴇ': '-',
+        '💜 ɪɴᴅɪɢᴏ': '-',
+        '🖤 ʙʟᴀᴄᴋ': '-',
+        '🍒 ᴄʜᴇʀʀʏ': '-',
+        '💕 ᴘɪɴᴋ': '-',
+        '🍋 ʟɪᴍᴇ': '-',
+        '💜 ᴘᴜʀᴘʟᴇ': '-',
+        '🧡 ᴏʀᴀɴɢᴇ': '-',
+        '💛 ʏᴇʟʟᴏᴡ': '-',
+        '💙 ʙʟᴜᴇ': '-',
+        '💚 ɢʀᴇᴇɴ': '-',
+        '❤‍🩹 ʀᴇᴅ': '-'
+    }
+    
+    # Заполняем данные из записей
     for entry in rr_entries:
-        server = entry['server']
-        if server not in servers_data:
-            servers_data[server] = []
-        servers_data[server].append(entry)
+        server_name = entry['server']
+        # Находим соответствующий emoji ключ
+        for emoji, name in SERVERS.items():
+            if name == server_name:
+                all_servers[emoji] = entry.get('description', 'Слёт')
+                break
     
     # Форматируем текст
-    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
-    text = f"🚨 <b>RR ЛИСТ - {today}</b> 🚨\n"
-    text += "⏰ Время публикации: 00:00 МСК\n\n"
+    text = f"<b>PP list by kfblackrussia {today}</b>\n\n"
     
-    for server, entries in servers_data.items():
-        text += f"🎮 <b>{server}</b>:\n"
-        for i, entry in enumerate(entries, 1):
-            text += f"   {i}. {entry.get('description', 'Слёт')}\n"
-        text += "\n"
+    # Группируем серверы по 3 в строку
+    servers_list = list(all_servers.items())
+    for i in range(0, len(servers_list), 3):
+        line = ""
+        for j in range(3):
+            if i + j < len(servers_list):
+                emoji, value = servers_list[i + j]
+                line += f"{emoji} - {value}  "
+        text += line + "\n"
     
-    text += f"📊 Всего записей: {len(rr_entries)}"
     return text
 
 async def format_pd_list():
     """Форматирует PD лист для постинга"""
-    if not pd_entries:
-        return "🏥 PD Лист на сегодня пуст"
+    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
     # Группируем по времени и категории
     houses_data = {}
@@ -253,47 +346,57 @@ async def format_pd_list():
             garages_data[time_key][server].append(entry)
     
     # Форматируем текст
-    today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
-    text = f"🏥 <b>PD ЛИСТ - {today}</b> 🏥\n"
-    text += "⏰ Время публикации: 05:00 МСК\n\n"
+    text = f"<b>PD list by @kfblackrussia {today}</b>\n\n"
     
     # Дома
+    text += "<b>Дома</b>\n"
     if houses_data:
-        text += "🏠 <b>ДОМА</b>:\n"
         for time_key in sorted(houses_data.keys()):
-            text += f"   ⏰ <b>{time_key}</b>:\n"
+            text += f"<b>{time_key}</b>\n"
             for server, entries in houses_data[time_key].items():
-                text += f"      🎮 {server}: "
                 descriptions = [entry.get('description', 'Слёт') for entry in entries]
-                text += ", ".join(descriptions) + "\n"
+                text += f"{server}: {', '.join(descriptions)}\n"
             text += "\n"
+    else:
+        text += "Нет записей\n\n"
     
     # Гаражи
+    text += "<b>Гаражи</b>\n"
     if garages_data:
-        text += "🚗 <b>ГАРАЖИ</b>:\n"
         for time_key in sorted(garages_data.keys()):
-            text += f"   ⏰ <b>{time_key}</b>:\n"
+            text += f"<b>{time_key}</b>\n"
             for server, entries in garages_data[time_key].items():
-                text += f"      🎮 {server}: "
                 descriptions = [entry.get('description', 'Слёт') for entry in entries]
-                text += ", ".join(descriptions) + "\n"
+                text += f"{server}: {', '.join(descriptions)}\n"
             text += "\n"
+    else:
+        text += "Нет записей\n"
     
-    text += f"📊 Всего записей: {len(pd_entries)}"
     return text
+
+def create_add_button():
+    """Создает кнопку Добавить слёт"""
+    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/kfblackrussiabot_bot")]]
+    return InlineKeyboardMarkup(keyboard)
 
 async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
     """Автопостинг RR листа в 00:00"""
+    logging.info(f"🕒 Запуск post_rr_list, время: {datetime.now(MOSCOW_TZ)}")
+    logging.info(f"📊 RR записей: {len(rr_entries)}")
+    
     if rr_entries:
         rr_text = await format_rr_list()
+        logging.info(f"📝 Текст RR листа подготовлен")
         try:
-            await context.bot.send_message(
+            message = await context.bot.send_message(
                 chat_id=CHAT_ID,
                 text=rr_text,
-                parse_mode='HTML'
+                parse_mode='HTML',
+                reply_markup=create_add_button()
             )
-            logging.info("✅ RR лист опубликован в канал")
-            # Очищаем RR лист после публикации
+            # Закрепляем сообщение
+            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
+            logging.info("✅ RR лист опубликован и закреплен в канале")
             rr_entries.clear()
         except Exception as e:
             logging.error(f"❌ Ошибка отправки RR листа: {e}")
@@ -302,21 +405,77 @@ async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
 
 async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
     """Автопостинг PD листа в 05:00"""
+    logging.info(f"🕒 Запуск post_pd_list, время: {datetime.now(MOSCOW_TZ)}")
+    logging.info(f"📊 PD записей: {len(pd_entries)}")
+    
     if pd_entries:
         pd_text = await format_pd_list()
+        logging.info(f"📝 Текст PD листа подготовлен")
         try:
-            await context.bot.send_message(
+            message = await context.bot.send_message(
                 chat_id=CHAT_ID,
                 text=pd_text,
-                parse_mode='HTML'
+                parse_mode='HTML',
+                reply_markup=create_add_button()
             )
-            logging.info("✅ PD лист опубликован в канал")
-            # Очищаем PD лист после публикации
+            # Закрепляем сообщение
+            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
+            logging.info("✅ PD лист опубликован и закреплен в канале")
             pd_entries.clear()
         except Exception as e:
             logging.error(f"❌ Ошибка отправки PD листа: {e}")
     else:
         logging.info("ℹ️ Нет записей для PD листа")
+
+async def list_rr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда для ручной отправки RR листа"""
+    if rr_entries:
+        rr_text = await format_rr_list()
+        try:
+            message = await update.message.reply_text(
+                text=rr_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            # Закрепляем в личной переписке (если это канал, нужны права)
+            try:
+                await context.bot.pin_chat_message(
+                    chat_id=update.effective_chat.id, 
+                    message_id=message.message_id
+                )
+            except:
+                pass  # Игнорируем ошибки закрепления
+            logging.info("✅ RR лист отправлен по команде")
+        except Exception as e:
+            logging.error(f"❌ Ошибка отправки RR листа: {e}")
+            await update.message.reply_text("❌ Ошибка отправки RR листа")
+    else:
+        await update.message.reply_text("📋 RR лист пуст")
+
+async def list_pd_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда для ручной отправки PD листа"""
+    if pd_entries:
+        pd_text = await format_pd_list()
+        try:
+            message = await update.message.reply_text(
+                text=pd_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            # Закрепляем в личной переписке (если это канал, нужны права)
+            try:
+                await context.bot.pin_chat_message(
+                    chat_id=update.effective_chat.id, 
+                    message_id=message.message_id
+                )
+            except:
+                pass  # Игнорируем ошибки закрепления
+            logging.info("✅ PD лист отправлен по команде")
+        except Exception as e:
+            logging.error(f"❌ Ошибка отправки PD листа: {e}")
+            await update.message.reply_text("❌ Ошибка отправки PD листа")
+    else:
+        await update.message.reply_text("🏥 PD лист пуст")
 
 async def daily_cleanup(context: ContextTypes.DEFAULT_TYPE):
     """Ежедневный сброс всех листов в 23:59"""
@@ -484,10 +643,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Тип: RR лист
 
 📋 Запись будет опубликована в 00:00
-Текущий RR лист:
-{rr_text}
-
-🧹 Ежедневный сброс в 23:59
             """
             
             keyboard = InlineKeyboardMarkup([[
@@ -511,7 +666,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             }
             pd_entries.append(pd_entry)
             
-            pd_text = await format_pd_list()
             response_text = f"""
 ✅ Запись добавлена в PD лист на {today}!
 
@@ -520,10 +674,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Время: {time_selected}
 
 🏥 Запись будет опубликована в 05:00
-Текущий PD лист:
-{pd_text}
-
-🧹 Ежедневный сброс в 23:59
             """
             
             keyboard = InlineKeyboardMarkup([[
@@ -591,6 +741,8 @@ def main():
     
     # Добавляем обработчики
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("list_rr", list_rr_command))
+    application.add_handler(CommandHandler("list_pd", list_pd_command))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_error_handler(error_handler)
     
