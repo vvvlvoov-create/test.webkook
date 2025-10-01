@@ -5,6 +5,9 @@ import pytz
 from dotenv import load_dotenv
 import asyncio
 
+# ✅ ДОБАВЛЕНО: Импорт keep-alive
+from keep_alive import keep_alive, start_pinging
+
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -437,14 +440,6 @@ async def list_rr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            # Закрепляем в личной переписке (если это канал, нужны права)
-            try:
-                await context.bot.pin_chat_message(
-                    chat_id=update.effective_chat.id, 
-                    message_id=message.message_id
-                )
-            except:
-                pass  # Игнорируем ошибки закрепления
             logging.info("✅ RR лист отправлен по команде")
         except Exception as e:
             logging.error(f"❌ Ошибка отправки RR листа: {e}")
@@ -462,14 +457,6 @@ async def list_pd_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            # Закрепляем в личной переписке (если это канал, нужны права)
-            try:
-                await context.bot.pin_chat_message(
-                    chat_id=update.effective_chat.id, 
-                    message_id=message.message_id
-                )
-            except:
-                pass  # Игнорируем ошибки закрепления
             logging.info("✅ PD лист отправлен по команде")
         except Exception as e:
             logging.error(f"❌ Ошибка отправки PD листа: {e}")
@@ -728,6 +715,10 @@ def setup_schedule(application: Application):
 
 def main():
     """Основная функция"""
+    # ✅ ДОБАВЛЕНО: Запуск keep-alive системы
+    keep_alive()
+    start_pinging()
+    
     logging.info("🚀 Запуск бота KF Black Russia...")
     logging.info(f"✅ CHAT_ID: {CHAT_ID}")
     logging.info(f"✅ Токен: {'установлен' if BOT_TOKEN else 'отсутствует'}")
