@@ -1,65 +1,76 @@
-from flask import Flask
-import threading
-import subprocess
-import requests
-import time
 import os
+import logging
+from flask import Flask, request
+from telegram import Update
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
-def run_bot():
-    """Запускает бота"""
-    print("🤖 Starting Telegram bot...")
-    subprocess.run(["python", "bot.py"])
+# Конфигурация
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+CHAT_ID = os.environ.get('CHAT_ID', '@kfblackrussia')
 
-def ping_self():
-    """Пингует сам себя каждые 10 минут"""
-    def ping_loop():
-        while True:
-            try:
-                # Пробуем разные способы получить URL
-                url = os.environ.get('RENDER_EXTERNAL_URL')
-                if not url:
-                    service_name = os.environ.get('RENDER_SERVICE_NAME')
-                    if service_name:
-                        url = f"https://{service_name}.onrender.com"
-                
-                if url:
-                    requests.get(url)
-                    print(f"✅ Ping sent to: {url}")
-                else:
-                    print("⚠️  URL not found, skipping ping")
-                    
-            except Exception as e:
-                print(f"❌ Ping failed: {e}")
-            time.sleep(600)  # 10 минут
-    
-    ping_thread = threading.Thread(target=ping_loop)
-    ping_thread.daemon = True
-    ping_thread.start()
+# Глобальные переменные
+application = None
 
 @app.route('/')
 def home():
-    return "🤖 Bot is running!"
+    return "🤖 KF Black Russia Bot is running!"
 
-@app.route('/ping')
-def ping():
-    return "🏓 Pong!"
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Обработчик webhook от Telegram"""
+    if application is None:
+        return 'Bot not initialized', 500
+    
+    update = Update.de_json(request.get_json(), application.bot)
+    application.process_update(update)
+    return 'OK'
+
+def setup_bot():
+    """Настройка бота"""
+    global application
+    
+    if not BOT_TOKEN:
+        logging.error("❌ BOT_TOKEN не установлен!")
+        return False
+    
+    # Создаем приложение
+    application = Application.builder().token(BOT_TOKEN).build()
+    
+    # Добавляем обработчики (импортируй свои функции)
+    from bot_handlers import start, list_rr_command, list_pd_command, button_handler, error_handler
+    
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("list_rr", list_rr_command))
+    application.add_handler(CommandHandler("list_pd", list_pd_command))
+    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_error_handler(error_handler)
+    
+    # Настраиваем webhook
+    webhook_url = os.environ.get('RENDER_EXTERNAL_URL', '') + '/webhook'
+    
+    if webhook_url:
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.environ.get('PORT', 10000)),
+            url_path=BOT_TOKEN,
+            webhook_url=webhook_url,
+            drop_pending_updates=True
+        )
+        logging.info(f"✅ Webhook установлен: {webhook_url}")
+    else:
+        logging.error("❌ RENDER_EXTERNAL_URL не установлен!")
+        return False
+    
+    return True
 
 if __name__ == '__main__':
-    # Показываем какой URL используется
-    url = os.environ.get('RENDER_EXTERNAL_URL') or f"https://{os.environ.get('RENDER_SERVICE_NAME', 'unknown')}.onrender.com"
-    print(f"🔗 Using URL: {url}")
-    
-    # Запускаем self-ping
-    ping_self()
-    
-    # Запускаем бота в отдельном потоке
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.daemon = True
-    bot_thread.start()
-    
-    # Запускаем Flask
-    port = int(os.environ.get("PORT", 5000))
-    print(f"🚀 Starting server on port {port}")
-    app.run(host='0.0.0.0', port=port)
+    if setup_bot():
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port)
+    else:
+        logging.error("❌ Не удалось запустить бота")
