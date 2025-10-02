@@ -609,37 +609,58 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 def setup_schedule(application: Application):
     """Настройка расписания автопостинга"""
-    job_queue = application.job_queue
-    
-    if job_queue is None:
-        logging.error("❌ Job Queue не инициализирована")
-        return
-    
-    # PD лист в 05:00
-    job_queue.run_daily(
-        post_pd_list,
-        time=PD_POST_TIME,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        name="post_pd_list"
-    )
-    
-    # RR лист в 00:00
-    job_queue.run_daily(
-        post_rr_list,
-        time=RR_POST_TIME,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        name="post_rr_list"
-    )
-    
-    # Ежедневный сброс в 23:59
-    job_queue.run_daily(
-        daily_cleanup,
-        time=CLEANUP_TIME,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        name="daily_cleanup"
-    )
-    
-    logging.info(f"📅 Расписание настроено: PD в {PD_POST_TIME}, RR в {RR_POST_TIME}, сброс в {CLEANUP_TIME}")
+    # ✅ ДОБАВЛЕНО: Инициализация Job Queue
+    try:
+        if application.job_queue is None:
+            from telegram.ext import JobQueue
+            application.job_queue = JobQueue()
+            application.job_queue.set_application(application)
+        
+        job_queue = application.job_queue
+        
+        if job_queue is None:
+            logging.error("❌ Job Queue не инициализирована после создания!")
+            return False
+        
+        current_time = datetime.now(MOSCOW_TZ)
+        logging.info(f"⏰ Текущее время сервера: {current_time}")
+        logging.info(f"📅 Настройка расписания: RR в {RR_POST_TIME}, PD в {PD_POST_TIME}")
+        
+        # ✅ Останавливаем старые задания если есть
+        for job in job_queue.jobs():
+            job.schedule_removal()
+        
+        # PD лист в 05:00
+        job_queue.run_daily(
+            post_pd_list,
+            time=PD_POST_TIME,
+            days=(0, 1, 2, 3, 4, 5, 6),
+            name="post_pd_list"
+        )
+        
+        # RR лист в 00:00
+        job_queue.run_daily(
+            post_rr_list,
+            time=RR_POST_TIME,
+            days=(0, 1, 2, 3, 4, 5, 6),
+            name="post_rr_list"
+        )
+        
+        # Ежедневный сброс в 23:59
+        job_queue.run_daily(
+            daily_cleanup,
+            time=CLEANUP_TIME,
+            days=(0, 1, 2, 3, 4, 5, 6),
+            name="daily_cleanup"
+        )
+        
+        logging.info("✅ Расписание успешно настроено!")
+        logging.info(f"📋 Запланированные задания: {[job.name for job in job_queue.jobs()]}")
+        return True
+        
+    except Exception as e:
+        logging.error(f"❌ Ошибка настройки расписания: {e}")
+        return False
 
 def main():
     """Основная функция"""
@@ -665,8 +686,11 @@ def main():
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_error_handler(error_handler)
     
-    # Настраиваем расписание автопостинга ПОСЛЕ создания приложения
-    setup_schedule(application)
+    # ✅ ИЗМЕНЕНО: Настраиваем расписание с проверкой
+    if setup_schedule(application):
+        logging.info("✅ Расписание настроено успешно!")
+    else:
+        logging.error("❌ Не удалось настроить расписание!")
     
     # Запускаем в режиме polling
     logging.info("🚀 Запуск в режиме polling...")
