@@ -27,7 +27,8 @@ logging.basicConfig(
 
 # Конфигурация
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-CHAT_ID = os.environ.get('CHAT_ID', '@kfblackrussia')
+# ✅ ИЗМЕНЕНО: Добавлен CHAT_ID
+CHAT_ID = os.environ.get('CHAT_ID', '-1003154247127')
 MOSCOW_TZ = pytz.timezone('Europe/Moscow')
 
 if not BOT_TOKEN:
@@ -205,120 +206,48 @@ async def format_rr_list():
     """Форматирует RR лист для постинга"""
     today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
-    # Создаем базовую структуру всех серверов
-    all_servers = {
-        '👮‍♂Череповец': '-',
-        '🐀Магадан': '-',
-        '🏰 ᴘᴏᴅᴏʟsᴋ': '-',
-        '🏙 sᴜʀɢᴜᴛ': '-',
-        '🏍 ɪᴢʜᴇᴠsᴋ': '-',
-        '🎄 ᴛᴏᴍsᴋ': '-',
-        '🐿 ᴛᴠᴇʀ': '-',
-        '🐦‍🔥 ᴠᴏʟᴏɢᴅᴀ': '-',
-        '🦁 ᴛᴀɢᴀɴʀᴏɢ': '-',
-        '🌼 ɴᴏᴠɢᴏʀᴏᴅ': '-',
-        '🫐 ᴋᴀʟᴜɢᴀ': '-',
-        '😹 ᴠʟᴀᴅɪᴍɪʀ': '-',
-        '🐲 ᴋᴏsᴛʀᴏᴍᴀ': '-',
-        '🦎 ᴄʜɪᴛᴀ': '-',
-        '🧣 ᴀsᴛʀᴀᴋʜᴀɴ': '-',
-        '👜 ʙʀᴀᴛsᴋ': '-',
-        '🥐 ᴛᴀᴍʙᴏᴠ': '-',
-        '🥽 ʏᴀᴋᴜᴛsᴋ': '-',
-        '🍭 ᴜʟʏᴀɴᴏᴠsᴋ': '-',
-        '🎈 ʟɪᴘᴇᴛsᴋ': '-',
-        '💦 ʙᴀʀɴᴀᴜʟ': '-',
-        '🏛 ʏᴀʀᴏsʟᴀᴠʟ': '-',
-        '🦅 ᴏʀᴇʟ': '-',
-        '🧸 ʙʀʏᴀɴsᴋ': '-',
-        '🪭 ᴘsᴋᴏᴠ': '-',
-        '🫚 sᴍᴏʟᴇɴsᴋ': '-',
-        '🪼 sᴛᴀᴠʀᴏᴘᴏʟ': '-',
-        '🪅 ɪᴠᴀɴᴏᴠᴏ': '-',
-        '🪸 ᴛᴏʟʏᴀᴛᴛɪ': '-',
-        '🐋 ᴛʏᴜᴍᴇɴ': '-',
-        '🌺 ᴋᴇᴍᴇʀᴏᴠᴏ': '-',
-        '🔫 ᴋɪʀᴏᴠ': '-',
-        '🍖 ᴏʀᴇɴʙᴜʀɢ': '-',
-        '🥋 ᴀʀᴋʜᴀɴɢᴇʟsᴋ': '-',
-        '🃏 ᴋᴜʀsᴋ': '-',
-        '🎳 ᴍᴜʀᴍᴀɴsᴋ': '-',
-        '🎷 ᴘᴇɴᴢᴀ': '-',
-        '🎭 ʀʏᴀᴢᴀɴ': '-',
-        '⛳ ᴛᴜʟᴀ': '-',
-        '🏟 ᴘᴇʀᴍ': '-',
-        '🐨 ᴋʜᴀʙᴀʀᴏᴠsᴋ': '-',
-        '🪄 ᴄʜᴇʙᴏᴋsᴀʀ': '-',
-        '🖇 ᴋʀᴀsɴᴏʏᴀʀsᴋ': '-',
-        '🕊 ᴄʜᴇʟʏᴀʙɪɴsᴋ': '-',
-        '👒 ᴋᴀʟɪɴɪɴɢʀᴀᴅ': '-',
-        '🧶 ᴠʟᴀᴅɪᴠᴏsᴛᴏᴋ': '-',
-        '🌂 ᴠʟᴀᴅɪᴋᴀᴠᴋᴀᴢ': '-',
-        '⛑️ ᴍᴀᴋʜᴀᴄʜᴋᴀʟᴀ': '-',
-        '🎓 ʙᴇʟɢᴏʀᴏᴅ': '-',
-        '👑 ᴠᴏʀᴏɴᴇᴢʜ': '-',
-        '🎒 ᴠᴏʟɢᴏɢʀᴀᴅ': '-',
-        '🌪 ɪʀᴋᴜᴛsᴋ': '-',
-        '🪙 ᴏᴍsᴋ': '-',
-        '🐉 sᴀʀᴀᴛᴏᴠ': '-',
-        '🍙 ɢʀᴏᴢɴʏ': '-',
-        '🍃 ɴᴏᴠᴏsɪʙ': '-',
-        '🪿 ᴀʀᴢᴀᴍᴀs': '-',
-        '🪻 ᴋʀᴀsɴᴏᴅᴀʀ': '-',
-        '📗 ᴇᴋʙ': '-',
-        '🪺 ᴀɴᴀᴘᴀ': '-',
-        '🍺 ʀᴏsᴛᴏᴠ': '-',
-        '🎧 sᴀᴍᴀʀᴀ': '-',
-        '🏛 ᴋᴀᴢᴀɴ': '-',
-        '🌊 sᴏᴄʜɪ': '-',
-        '🌪 ᴜғᴀ': '-',
-        '🌉 sᴘʙ': '-',
-        '🌇 ᴍᴏsᴄᴏᴡ': '-',
-        '🤎 ᴄʜᴏᴄᴏ': '-',
-        '📕 ᴄʜɪʟʟɪ': '-',
-        '❄ ɪᴄᴇ': '-',
-        '📓 ɢʀᴀʏ': '-',
-        '📘 ᴀǫᴜᴀ': '-',
-        '🩶 ᴘʟᴀᴛɪɴᴜᴍ': '-',
-        '💙 ᴀᴢᴜʀᴇ': '-',
-        '💛️ ɢᴏʟᴅ': '-',
-        '❤‍🔥 ᴄʀɪᴍsᴏɴ': '-',
-        '🩷 ᴍᴀɢᴇɴᴛᴀ': '-',
-        '🤍 ᴡʜɪᴛᴇ': '-',
-        '💜 ɪɴᴅɪɢᴏ': '-',
-        '🖤 ʙʟᴀᴄᴋ': '-',
-        '🍒 ᴄʜᴇʀʀʏ': '-',
-        '💕 ᴘɪɴᴋ': '-',
-        '🍋 ʟɪᴍᴇ': '-',
-        '💜 ᴘᴜʀᴘʟᴇ': '-',
-        '🧡 ᴏʀᴀɴɢᴇ': '-',
-        '💛 ʏᴇʟʟᴏᴡ': '-',
-        '💙 ʙʟᴜᴇ': '-',
-        '💚 ɢʀᴇᴇɴ': '-',
-        '❤‍🩹 ʀᴇᴅ': '-'
-    }
+    # ✅ ИЗМЕНЕНО: Новый формат RR листа
+    text = f"<b>PP list by @kfblackrussia {today}</b>\n\n"
+    
+    # Все серверы в столбик как ты просил
+    servers_list = [
+        "👮‍♂Череповец -", "🐀Магадан -", "🏰 ᴘᴏᴅᴏʟsᴋ -", "🏙 sᴜʀɢᴜᴛ -", "🏍 ɪᴢʜᴇᴠsᴋ -",
+        "🎄 ᴛᴏᴍsᴋ -", "🐿 ᴛᴠᴇʀ -", "🐦‍🔥 ᴠᴏʟᴏɢᴅᴀ -", "🦁 ᴛᴀɢᴀɴʀᴏɢ -", "🌼 ɴᴏᴠɢᴏʀᴏᴅ -",
+        "🫐 ᴋᴀʟᴜɢᴀ -", "😹 ᴠʟᴀᴅɪᴍɪʀ -", "🐲 ᴋᴏsᴛʀᴏᴍᴀ -", "🦎 ᴄʜɪᴛᴀ -", "🧣 ᴀsᴛʀᴀᴋʜᴀɴ -",
+        "👜 ʙʀᴀᴛsᴋ -", "🥐 ᴛᴀᴍʙᴏᴠ -", "🥽 ʏᴀᴋᴜᴛsᴋ -", "🍭 ᴜʟʏᴀɴᴏᴠsᴋ -", "🎈 ʟɪᴘᴇᴛsᴋ -",
+        "💦 ʙᴀʀɴᴀᴜʟ -", "🏛 ʏᴀʀᴏsʟᴀᴠʟ -", "🦅 ᴏʀᴇʟ -", "🧸 ʙʀʏᴀɴsᴋ -", "🪭 ᴘsᴋᴏᴠ -",
+        "🫚 sᴍᴏʟᴇɴsᴋ -", "🪼 sᴛᴀᴠʀᴏᴘᴏʟ -", "🪅 ɪᴠᴀɴᴏᴠᴏ -", "🪸 ᴛᴏʟʏᴀᴛᴛɪ -", "🐋 ᴛʏᴜᴍᴇɴ -",
+        "🌺 ᴋᴇᴍᴇʀᴏᴠᴏ -", "🔫 ᴋɪʀᴏᴠ -", "🍖 ᴏʀᴇɴʙᴜʀɢ -", "🥋 ᴀʀᴋʜᴀɴɢᴇʟsᴋ -", "🃏 ᴋᴜʀsᴋ -",
+        "🎳 ᴍᴜʀᴍᴀɴsᴋ -", "🎷 ᴘᴇɴᴢᴀ -", "🎭 ʀʏᴀᴢᴀɴ -", "⛳ ᴛᴜʟᴀ -", "🏟 ᴘᴇʀᴍ -",
+        "🐨 ᴋʜᴀʙᴀʀᴏᴠsᴋ -", "🪄 ᴄʜᴇʙᴏᴋsᴀʀ -", "🖇 ᴋʀᴀsɴᴏʏᴀʀsᴋ -", "🕊 ᴄʜᴇʟʏᴀʙɪɴsᴋ -",
+        "👒 ᴋᴀʟɪɴɪɴɢʀᴀᴅ -", "🧶 ᴠʟᴀᴅɪᴠᴏsᴛᴏᴋ -", "🌂 ᴠʟᴀᴅɪᴋᴀᴠᴋᴀᴢ -", "⛑️ ᴍᴀᴋʜᴀᴄʜᴋᴀʟᴀ -",
+        "🎓 ʙᴇʟɢᴏʀᴏᴅ -", "👑 ᴠᴏʀᴏɴᴇᴢʜ -", "🎒 ᴠᴏʟɢᴏɢʀᴀᴅ -", "🌪 ɪʀᴋᴜᴛsᴋ -", "🪙 ᴏᴍsᴋ -",
+        "🐉 sᴀʀᴀᴛᴏᴠ -", "🍙 ɢʀᴏᴢɴʏ -", "🍃 ɴᴏᴠᴏsɪʙ -", "🪿 ᴀʀᴢᴀᴍᴀs -", "🪻 ᴋʀᴀsɴᴏᴅᴀʀ -",
+        "📗 ᴇᴋʙ -", "🪺 ᴀɴᴀᴘᴀ -", "🍺 ʀᴏsᴛᴏᴠ -", "🎧 sᴀᴍᴀʀᴀ -", "🏛 ᴋᴀᴢᴀɴ -",
+        "🌊 sᴏᴄʜɪ -", "🌪 ᴜғᴀ -", "🌉 sᴘʙ -", "🌇 ᴍᴏsᴄᴏᴡ -", "🤎 ᴄʜᴏᴄᴏ -",
+        "📕 ᴄʜɪʟʟɪ -", "❄ ɪᴄᴇ -", "📓 ɢʀᴀʏ -", "📘 ᴀǫᴜᴀ -", "🩶 ᴘʟᴀᴛɪɴᴜᴍ -",
+        "💙 ᴀᴢᴜʀᴇ -", "💛️ ɢᴏʟᴅ -", "❤‍🔥 ᴄʀɪᴍsᴏɴ -", "🩷 ᴍᴀɢᴇɴᴛᴀ -", "🤍 ᴡʜɪᴛᴇ -",
+        "💜 ɪɴᴅɪɢᴏ -", "🖤 ʙʟᴀᴄᴋ -", "🍒 ᴄʜᴇʀʀʏ -", "💕 ᴘɪɴᴋ -", "🍋 ʟɪᴍᴇ -",
+        "💜 ᴘᴜʀᴘʟᴇ -", "🧡 ᴏʀᴀɴɢᴇ -", "💛 ʏᴇʟʟᴏᴡ -", "💙 ʙʟᴜᴇ -", "💚 ɢʀᴇᴇɴ -",
+        "❤‍🩹 ʀᴇᴅ -"
+    ]
     
     # Заполняем данные из записей
+    server_data = {server.split(' -')[0]: '-' for server in servers_list}
+    
     for entry in rr_entries:
         server_name = entry['server']
-        # Находим соответствующий emoji ключ
         for emoji, name in SERVERS.items():
             if name == server_name:
-                all_servers[emoji] = entry.get('description', 'Слёт')
+                if emoji in server_data:
+                    server_data[emoji] = entry.get('description', 'Слёт')
                 break
     
-    # Форматируем текст
-    text = f"<b>PP list by kfblackrussia {today}</b>\n\n"
-    
-    # Группируем серверы по 3 в строку
-    servers_list = list(all_servers.items())
-    for i in range(0, len(servers_list), 3):
-        line = ""
-        for j in range(3):
-            if i + j < len(servers_list):
-                emoji, value = servers_list[i + j]
-                line += f"{emoji} - {value}  "
-        text += line + "\n"
+    # Форматируем в столбик
+    for server in servers_list:
+        emoji = server.split(' -')[0]
+        value = server_data.get(emoji, '-')
+        text += f"{emoji} - {value}\n"
     
     return text
 
@@ -326,51 +255,43 @@ async def format_pd_list():
     """Форматирует PD лист для постинга"""
     today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
-    # Группируем по времени и категории
-    houses_data = {}
-    garages_data = {}
-    
-    for entry in pd_entries:
-        time_key = entry['time']
-        category = entry['category']
-        server = entry['server']
-        
-        if category == 'house':
-            if time_key not in houses_data:
-                houses_data[time_key] = {}
-            if server not in houses_data[time_key]:
-                houses_data[time_key][server] = []
-            houses_data[time_key][server].append(entry)
-        else:
-            if time_key not in garages_data:
-                garages_data[time_key] = {}
-            if server not in garages_data[time_key]:
-                garages_data[time_key][server] = []
-            garages_data[time_key][server].append(entry)
-    
-    # Форматируем текст
+    # ✅ ИЗМЕНЕНО: Новый формат PD листа
     text = f"<b>PD list by @kfblackrussia {today}</b>\n\n"
     
     # Дома
     text += "<b>Дома</b>\n"
+    houses_data = {}
+    for entry in pd_entries:
+        if entry['category'] == 'house':
+            time_key = entry['time']
+            if time_key not in houses_data:
+                houses_data[time_key] = []
+            houses_data[time_key].append(entry)
+    
     if houses_data:
         for time_key in sorted(houses_data.keys()):
             text += f"<b>{time_key}</b>\n"
-            for server, entries in houses_data[time_key].items():
-                descriptions = [entry.get('description', 'Слёт') for entry in entries]
-                text += f"{server}: {', '.join(descriptions)}\n"
+            for entry in houses_data[time_key]:
+                text += f"{entry['server']}: {entry.get('description', 'Слёт')}\n"
             text += "\n"
     else:
         text += "Нет записей\n\n"
     
     # Гаражи
     text += "<b>Гаражи</b>\n"
+    garages_data = {}
+    for entry in pd_entries:
+        if entry['category'] == 'garage':
+            time_key = entry['time']
+            if time_key not in garages_data:
+                garages_data[time_key] = []
+            garages_data[time_key].append(entry)
+    
     if garages_data:
         for time_key in sorted(garages_data.keys()):
             text += f"<b>{time_key}</b>\n"
-            for server, entries in garages_data[time_key].items():
-                descriptions = [entry.get('description', 'Слёт') for entry in entries]
-                text += f"{server}: {', '.join(descriptions)}\n"
+            for entry in garages_data[time_key]:
+                text += f"{entry['server']}: {entry.get('description', 'Слёт')}\n"
             text += "\n"
     else:
         text += "Нет записей\n"
@@ -379,7 +300,8 @@ async def format_pd_list():
 
 def create_add_button():
     """Создает кнопку Добавить слёт"""
-    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/kfblackrussiabot_bot")]]
+    # ✅ ИЗМЕНЕНО: Новая ссылка на бота
+    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/blackpapashabot_bot")]]
     return InlineKeyboardMarkup(keyboard)
 
 async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
@@ -397,7 +319,7 @@ async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            # Закрепляем сообщение
+            # ✅ Закрепляем сообщение
             await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
             logging.info("✅ RR лист опубликован и закреплен в канале")
             rr_entries.clear()
@@ -421,7 +343,7 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            # Закрепляем сообщение
+            # ✅ Закрепляем сообщение
             await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
             logging.info("✅ PD лист опубликован и закреплен в канале")
             pd_entries.clear()
@@ -435,12 +357,15 @@ async def list_rr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if rr_entries:
         rr_text = await format_rr_list()
         try:
-            message = await update.message.reply_text(
+            message = await context.bot.send_message(
+                chat_id=CHAT_ID,
                 text=rr_text,
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            logging.info("✅ RR лист отправлен по команде")
+            # ✅ Закрепляем сообщение
+            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
+            logging.info("✅ RR лист отправлен по команде и закреплен")
         except Exception as e:
             logging.error(f"❌ Ошибка отправки RR листа: {e}")
             await update.message.reply_text("❌ Ошибка отправки RR листа")
@@ -452,12 +377,15 @@ async def list_pd_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if pd_entries:
         pd_text = await format_pd_list()
         try:
-            message = await update.message.reply_text(
+            message = await context.bot.send_message(
+                chat_id=CHAT_ID,
                 text=pd_text,
                 parse_mode='HTML',
                 reply_markup=create_add_button()
             )
-            logging.info("✅ PD лист отправлен по команде")
+            # ✅ Закрепляем сообщение
+            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=message.message_id)
+            logging.info("✅ PD лист отправлен по команде и закреплен")
         except Exception as e:
             logging.error(f"❌ Ошибка отправки PD листа: {e}")
             await update.message.reply_text("❌ Ошибка отправки PD листа")
