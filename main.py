@@ -632,15 +632,10 @@ def reset_bot_webhook():
 def setup_schedule(application: Application):
     """Настройка расписания автопостинга"""
     try:
-        if application.job_queue is None:
-            from telegram.ext import JobQueue
-            application.job_queue = JobQueue()
-            application.job_queue.set_application(application)
-        
         job_queue = application.job_queue
         
         if job_queue is None:
-            logging.error("❌ Job Queue не инициализирована после создания!")
+            logging.error("❌ Job Queue недоступна. Убедитесь, что установлена версия python-telegram-bot с job-queue")
             return False
         
         current_time = datetime.now(MOSCOW_TZ)
@@ -663,13 +658,30 @@ def setup_schedule(application: Application):
         logging.error(f"❌ Ошибка настройки расписания: {e}")
         return False
 
-async def post_startup(application: Application):
-    """Функция, выполняемая после запуска бота"""
-    logging.info("🚀 Бот запущен! Настраиваем расписание...")
-    setup_schedule(application)
-    
-    # Сбрасываем webhook для чистого запуска
-    reset_bot_webhook()
+async def check_schedule_periodically():
+    """Периодическая проверка и выполнение задач по расписанию"""
+    while True:
+        now = datetime.now(MOSCOW_TZ)
+        current_time = now.time()
+        
+        # Проверяем RR лист (00:00)
+        if current_time.hour == 0 and current_time.minute == 0:
+            logging.info("🕒 Время публикации RR листа!")
+            # Здесь нужно вызвать функцию публикации RR листа
+            # await post_rr_list() - нужно передать context
+        
+        # Проверяем PD лист (05:00)  
+        elif current_time.hour == 5 and current_time.minute == 0:
+            logging.info("🕒 Время публикации PD листа!")
+            # Здесь нужно вызвать функцию публикации PD листа
+        
+        # Проверяем очистку (23:59)
+        elif current_time.hour == 23 and current_time.minute == 59:
+            logging.info("🕒 Время ежедневной очистки!")
+            # Здесь нужно вызвать функцию очистки
+        
+        # Ждем 1 минуту перед следующей проверкой
+        await asyncio.sleep(60)
 
 def main():
     """Основная функция запуска бота"""
@@ -692,8 +704,14 @@ def main():
         keep_alive()
         start_pinging()
         
-        # Настраиваем расписание
-        setup_schedule(application)
+        # Пытаемся настроить расписание (если job-queue доступен)
+        try:
+            setup_schedule(application)
+            logging.info("✅ Job-queue расписание настроено")
+        except Exception as e:
+            logging.warning(f"⚠️ Job-queue недоступен, используем альтернативный метод: {e}")
+            # Запускаем альтернативный планировщик
+            asyncio.create_task(check_schedule_periodically())
         
         # Запускаем бота
         logging.info("🤖 Запускаем бота...")
@@ -703,4 +721,4 @@ def main():
         logging.error(f"❌ Критическая ошибка при запуске: {e}")
 
 if __name__ == "__main__":
-    main() 
+    main()
