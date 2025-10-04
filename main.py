@@ -189,42 +189,120 @@ async def format_rr_list():
     today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     text = f"<b>PP list by @kfblackrussia {today}</b>\n\n"
     
+    # ✅ ИСПРАВЛЕНО: Все 89 серверов в правильном порядке
     servers_list = [
-        "👮‍♂Череповец -", "🐀Магадан -", "🏰 ᴘᴏᴅᴏʟsᴋ -", "🏙 sᴜʀɢᴜᴛ -", "🏍 ɪᴢʜᴇᴠsᴋ -",
-        "🎄 ᴛᴏᴍsᴋ -", "🐿 ᴛᴠᴇʀ -", "🐦‍🔥 ᴠᴏʟᴏɢᴅᴀ -", "🦁 ᴛᴀɢᴀɴʀᴏɢ -", "🌼 ɴᴏᴠɢᴏʀᴏᴅ -",
-        "🫐 ᴋᴀʟᴜɢᴀ -", "😹 ᴠʟᴀᴅɪᴍɪʀ -", "🐲 ᴋᴏsᴛʀᴏᴍᴀ -", "🦎 ᴄʜɪᴛᴀ -", "🧣 ᴀsᴛʀᴀᴋʜᴀɴ -",
-        "👜 ʙʀᴀᴛsᴋ -", "🥐 ᴛᴀᴍʙᴏᴠ -", "🥽 ʏᴀᴋᴜᴛsᴋ -", "🍭 ᴜʟʏᴀɴᴏᴠsᴋ -", "🎈 ʟɪᴘᴇᴛsᴋ -",
-        "💦 ʙᴀʀɴᴀᴜʟ -", "🏛 ʏᴀʀᴏsʟᴀᴠʟ -", "🦅 ᴏʀᴇʟ -", "🧸 ʙʀʏᴀɴsᴋ -", "🪭 ᴘsᴋᴏᴠ -",
-        "🫚 sᴍᴏʟᴇɴsᴋ -", "🪼 sᴛᴀᴠʀᴏᴘᴏʟ -", "🪅 ɪᴠᴀɴᴏᴠᴏ -", "🪸 ᴛᴏʟʏᴀᴛᴛɪ -", "🐋 ᴛʏᴜᴍᴇɴ -",
-        "🌺 ᴋᴇᴍᴇʀᴏᴠᴏ -", "🔫 ᴋɪʀᴏᴠ -", "🍖 ᴏʀᴇɴʙᴜʀɢ -", "🥋 ᴀʀᴋʜᴀɴɢᴇʟsᴋ -", "🃏 ᴋᴜʀsᴋ -",
-        "🎳 ᴍᴜʀᴍᴀɴsᴋ -", "🎷 ᴘᴇɴᴢᴀ -", "🎭 ʀʏᴀᴢᴀɴ -", "⛳ ᴛᴜʟᴀ -", "🏟 ᴘᴇʀᴍ -",
-        "🐨 ᴋʜᴀʙᴀʀᴏᴠsᴋ -", "🪄 ᴄʜᴇʙᴏᴋsᴀʀ -", "🖇 ᴋʀᴀsɴᴏʏᴀʀsᴋ -", "🕊 ᴄʜᴇʟʏᴀʙɪɴsᴋ -",
-        "👒 ᴋᴀʟɪɴɪɴɢʀᴀᴅ -", "🧶 ᴠʟᴀᴅɪᴠᴏsᴛᴏᴋ -", "🌂 ᴠʟᴀᴅɪᴋᴀᴠᴋᴀᴢ -", "⛑️ ᴍᴀᴋʜᴀᴄʜᴋᴀʟᴀ -",
-        "🎓 ʙᴇʟɢᴏʀᴏᴅ -", "👑 ᴠᴏʀᴏɴᴇᴢʜ -", "🎒 ᴠᴏʟɢᴏɢʀᴀᴅ -", "🌪 ɪʀᴋᴜᴛsᴋ -", "🪙 ᴏᴍsᴋ -",
-        "🐉 sᴀʀᴀᴛᴏᴠ -", "🍙 ɢʀᴏᴢɴʏ -", "🍃 ɴᴏᴠᴏsɪʙ -", "🪿 ᴀʀᴢᴀᴍᴀs -", "🪻 ᴋʀᴀsɴᴏᴅᴀʀ -",
-        "📗 ᴇᴋʙ -", "🪺 ᴀɴᴀᴘᴀ -", "🍺 ʀᴏsᴛᴏᴠ -", "🎧 sᴀᴍᴀʀᴀ -", "🏛 ᴋᴀᴢᴀɴ -",
-        "🌊 sᴏᴄʜɪ -", "🌪 ᴜғᴀ -", "🌉 sᴘʙ -", "🌇 ᴍᴏsᴄᴏᴡ -", "🤎 ᴄʜᴏᴄᴏ -",
-        "📕 ᴄʜɪʟʟɪ -", "❄ ɪᴄᴇ -", "📓 ɢʀᴀʏ -", "📘 ᴀǫᴜᴀ -", "🩶 ᴘʟᴀᴛɪɴᴜᴍ -",
-        "💙 ᴀᴢᴜʀᴇ -", "💛️ ɢᴏʟᴅ -", "❤‍🔥 ᴄʀɪᴍsᴏɴ -", "🩷 ᴍᴀɢᴇɴᴛᴀ -", "🤍 ᴡʜɪᴛᴇ -",
-        "💜 ɪɴᴅɪɢᴏ -", "🖤 ʙʟᴀᴄᴋ -", "🍒 ᴄʜᴇʀʀʏ -", "💕 ᴘɪɴᴋ -", "🍋 ʟɪᴍᴇ -",
-        "💜 ᴘᴜʀᴘʟᴇ -", "🧡 ᴏʀᴀɴɢᴇ -", "💛 ʏᴇʟʟᴏᴡ -", "💙 ʙʟᴜᴇ -", "💚 ɢʀᴇᴇɴ -",
+        "👮‍♂Череповец -",
+        "🐀Магадан -", 
+        "🏰 ᴘᴏᴅᴏʟsᴋ -",
+        "🏙 sᴜʀɢᴜᴛ -",
+        "🏍 ɪᴢʜᴇᴠsᴋ -",
+        "🎄 ᴛᴏᴍsᴋ -",
+        "🐿 ᴛᴠᴇʀ -",
+        "🐦‍🔥 ᴠᴏʟᴏɢᴅᴀ -",
+        "🦁 ᴛᴀɢᴀɴʀᴏɢ -",
+        "🌼 ɴᴏᴠɢᴏʀᴏᴅ -",
+        "🫐 ᴋᴀʟᴜɢᴀ -",
+        "😹 ᴠʟᴀᴅɪᴍɪʀ -",
+        "🐲 ᴋᴏsᴛʀᴏᴍᴀ -",
+        "🦎 ᴄʜɪᴛᴀ -",
+        "🧣 ᴀsᴛʀᴀᴋʜᴀɴ -",
+        "👜 ʙʀᴀᴛsᴋ -",
+        "🥐 ᴛᴀᴍʙᴏᴠ -",
+        "🥽 ʏᴀᴋᴜᴛsᴋ -",
+        "🍭 ᴜʟʏᴀɴᴏᴠsᴋ -",
+        "🎈 ʟɪᴘᴇᴛsᴋ -",
+        "💦 ʙᴀʀɴᴀᴜʟ -",
+        "🏛 ʏᴀʀᴏsʟᴀᴠʟ -",
+        "🦅 ᴏʀᴇʟ -",
+        "🧸 ʙʀʏᴀɴsᴋ -",
+        "🪭 ᴘsᴋᴏᴠ -",
+        "🫚 sᴍᴏʟᴇɴsᴋ -",
+        "🪼 sᴛᴀᴠʀᴏᴘᴏʟ -",
+        "🪅 ɪᴠᴀɴᴏᴠᴏ -",
+        "🪸 ᴛᴏʟʏᴀᴛᴛɪ -",
+        "🐋 ᴛʏᴜᴍᴇɴ -",
+        "🌺 ᴋᴇᴍᴇʀᴏᴠᴏ -",
+        "🔫 ᴋɪʀᴏᴠ -",
+        "🍖 ᴏʀᴇɴʙᴜʀɢ -",
+        "🥋 ᴀʀᴋʜᴀɴɢᴇʟsᴋ -",
+        "🃏 ᴋᴜʀsᴋ -",
+        "🎳 ᴍᴜʀᴍᴀɴsᴋ -",
+        "🎷 ᴘᴇɴᴢᴀ -",
+        "🎭 ʀʏᴀᴢᴀɴ -",
+        "⛳ ᴛᴜʟᴀ -",
+        "🏟 ᴘᴇʀᴍ -",
+        "🐨 ᴋʜᴀʙᴀʀᴏᴠsᴋ -",
+        "🪄 ᴄʜᴇʙᴏᴋsᴀʀ -",
+        "🖇 ᴋʀᴀsɴᴏʏᴀʀsᴋ -",
+        "🕊 ᴄʜᴇʟʏᴀʙɪɴsᴋ -",
+        "👒 ᴋᴀʟɪɴɪɴɢʀᴀᴅ -",
+        "🧶 ᴠʟᴀᴅɪᴠᴏsᴛᴏᴋ -",
+        "🌂 ᴠʟᴀᴅɪᴋᴀᴠᴋᴀᴢ -",
+        "⛑️ ᴍᴀᴋʜᴀᴄʜᴋᴀʟᴀ -",
+        "🎓 ʙᴇʟɢᴏʀᴏᴅ -",
+        "👑 ᴠᴏʀᴏɴᴇᴢʜ -",
+        "🎒 ᴠᴏʟɢᴏɢʀᴀᴅ -",
+        "🌪 ɪʀᴋᴜᴛsᴋ -",
+        "🪙 ᴏᴍsᴋ -",
+        "🐉 sᴀʀᴀᴛᴏᴠ -",
+        "🍙 ɢʀᴏᴢɴʏ -",
+        "🍃 ɴᴏᴠᴏsɪʙ -",
+        "🪿 ᴀʀᴢᴀᴍᴀs -",
+        "🪻 ᴋʀᴀsɴᴏᴅᴀʀ -",
+        "📗 ᴇᴋʙ -",
+        "🪺 ᴀɴᴀᴘᴀ -",
+        "🍺 ʀᴏsᴛᴏᴠ -",
+        "🎧 sᴀᴍᴀʀᴀ -",
+        "🏛 ᴋᴀᴢᴀɴ -",
+        "🌊 sᴏᴄʬɪ -",
+        "🌪 ᴜғᴀ -",
+        "🌉 sᴘʙ -",
+        "🌇 ᴍᴏsᴄᴏᴡ -",
+        "🤎 ᴄʜᴏᴄᴏ -",
+        "📕 ᴄʜɪʟʟɪ -",
+        "❄ ɪᴄᴇ -",
+        "📓 ɢʀᴀʏ -",
+        "📘 ᴀǫᴜᴀ -",
+        "🩶 ᴘʟᴀᴛɪɴᴜᴍ -",
+        "💙 ᴀᴢᴜʀᴇ -",
+        "💛️ ɢᴏʟᴅ -",
+        "❤‍🔥 ᴄʀɪᴍsᴏɴ -",
+        "🩷 ᴍᴀɢᴇɴᴛᴀ -",
+        "🤍 ᴡʜɪᴛᴇ -",
+        "💜 ɪɴᴅɪɢᴏ -",
+        "🖤 ʙʟᴀᴄᴋ -",
+        "🍒 ᴄʜᴇʀʀʏ -",
+        "💕 ᴘɪɴᴋ -",
+        "🍋 ʟɪᴍᴇ -",
+        "💜 ᴘᴜʀᴘʟᴇ -",
+        "🧡 ᴏʀᴀɴɢᴇ -",
+        "💛 ʏᴇʟʟᴏᴡ -",
+        "💙 ʙʟᴜᴇ -",
+        "💚 ɢʀᴇᴇɴ -",
         "❤‍🩹 ʀᴇᴅ -"
     ]
     
-    server_data = {server.split(' -')[0]: '-' for server in servers_list}
+    # ✅ ИСПРАВЛЕНО: Создаем словарь для данных серверов
+    server_data = {}
+    for server_line in servers_list:
+        emoji_part = server_line.split(' -')[0]
+        server_data[emoji_part] = '-'
     
+    # ✅ ИСПРАВЛЕНО: Заполняем данные из записей
     for entry in rr_entries:
         server_name = entry['server']
+        # Ищем соответствующий эмодзи для этого сервера
         for emoji, name in SERVERS.items():
             if name == server_name:
                 if emoji in server_data:
                     server_data[emoji] = entry.get('description', 'Слёт')
                 break
     
-    for server in servers_list:
-        emoji = server.split(' -')[0]
-        value = server_data.get(emoji, '-')
-        text += f"{emoji} - {value}\n"
+    # ✅ ИСПРАВЛЕНО: Формируем текст с правильным порядком серверов
+    for server_line in servers_list:
+        emoji_part = server_line.split(' -')[0]
+        value = server_data.get(emoji_part, '-')
+        text += f"{emoji_part} - {value}\n"
     
     return text
 
@@ -273,12 +351,78 @@ async def format_pd_list():
 
 def create_add_button():
     """Создает кнопку Добавить слёт"""
-    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/blackpapashabot_bot")]]
+    # ✅ ИСПРАВЛЕНО: Изменена ссылка на @avtolists_bot
+    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/avtolists_bot")]]
     return InlineKeyboardMarkup(keyboard)
 
-# ✅ ДОБАВЛЕНО: Функция обновления листов в чате
-async def update_rr_list_in_chat(context: ContextTypes.DEFAULT_TYPE):
+# ✅ Функция обновления листов в чате
+async def update_rr_list_in_chat(application: Application):
     """Обновляет RR лист в чате"""
+    global last_rr_message_id
+    
+    try:
+        rr_text = await format_rr_list()
+        
+        if last_rr_message_id:
+            # Редактируем существующее сообщение
+            await application.bot.edit_message_text(
+                chat_id=CHAT_ID,
+                message_id=last_rr_message_id,
+                text=rr_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            logging.info("✅ RR лист обновлен в чате")
+        else:
+            # Отправляем новое сообщение
+            message = await application.bot.send_message(
+                chat_id=CHAT_ID,
+                text=rr_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            last_rr_message_id = message.message_id
+            await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_rr_message_id)
+            logging.info("✅ RR лист отправлен и закреплен в чате")
+            
+    except Exception as e:
+        logging.error(f"❌ Ошибка обновления RR листа: {e}")
+
+async def update_pd_list_in_chat(application: Application):
+    """Обновляет PD лист в чате"""
+    global last_pd_message_id
+    
+    try:
+        pd_text = await format_pd_list()
+        
+        if last_pd_message_id:
+            # Редактируем существующее сообщение
+            await application.bot.edit_message_text(
+                chat_id=CHAT_ID,
+                message_id=last_pd_message_id,
+                text=pd_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            logging.info("✅ PD лист обновлен в чате")
+        else:
+            # Отправляем новое сообщение
+            message = await application.bot.send_message(
+                chat_id=CHAT_ID,
+                text=pd_text,
+                parse_mode='HTML',
+                reply_markup=create_add_button()
+            )
+            last_pd_message_id = message.message_id
+            await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_pd_message_id)
+            logging.info("✅ PD лист отправлен и закреплен в чате")
+            
+    except Exception as e:
+        logging.error(f"❌ Ошибка обновления PD листа: {e}")
+
+# ✅ Функции для обновления листов через context (для job queue)
+async def update_rr_list_with_context(context: ContextTypes.DEFAULT_TYPE):
+    """Обновляет RR лист через context (для job queue)"""
     global last_rr_message_id
     
     try:
@@ -309,8 +453,8 @@ async def update_rr_list_in_chat(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"❌ Ошибка обновления RR листа: {e}")
 
-async def update_pd_list_in_chat(context: ContextTypes.DEFAULT_TYPE):
-    """Обновляет PD лист в чате"""
+async def update_pd_list_with_context(context: ContextTypes.DEFAULT_TYPE):
+    """Обновляет PD лист через context (для job queue)"""
     global last_pd_message_id
     
     try:
@@ -346,7 +490,7 @@ async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
     logging.info(f"🕒 Запуск post_rr_list, время: {datetime.now(MOSCOW_TZ)}")
     
     if rr_entries:
-        await update_rr_list_in_chat(context)
+        await update_rr_list_with_context(context)
         # Не очищаем записи - они будут актуальны до очистки в 23:59
     else:
         logging.info("ℹ️ Нет записей для RR листа")
@@ -356,7 +500,7 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
     logging.info(f"🕒 Запуск post_pd_list, время: {datetime.now(MOSCOW_TZ)}")
     
     if pd_entries:
-        await update_pd_list_in_chat(context)
+        await update_pd_list_with_context(context)
         # Не очищаем записи - они будут актуальны до очистки в 23:59
     else:
         logging.info("ℹ️ Нет записей для PD листа")
@@ -364,7 +508,7 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
 async def list_rr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда для ручной отправки RR листа"""
     try:
-        await update_rr_list_in_chat(context)
+        await update_rr_list_in_chat(context.application)
         await update.message.reply_text("✅ RR лист обновлен в чате!")
     except Exception as e:
         logging.error(f"❌ Ошибка отправки RR листа: {e}")
@@ -373,7 +517,7 @@ async def list_rr_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def list_pd_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда для ручной отправки PD листа"""
     try:
-        await update_pd_list_in_chat(context)
+        await update_pd_list_in_chat(context.application)
         await update.message.reply_text("✅ PD лист обновлен в чате!")
     except Exception as e:
         logging.error(f"❌ Ошибка отправки PD листа: {e}")
@@ -439,7 +583,7 @@ async def view_lists_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     keyboard = create_main_menu()
     await query.edit_message_text(text, reply_markup=keyboard, parse_mode='HTML')
 
-# ✅ ДОБАВЛЕНО: Обработчик текстовых сообщений для ввода описания
+# ✅ Обработчик текстовых сообщений для ввода описания
 async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик ввода описания слёта"""
     user_id = update.message.from_user.id
@@ -471,8 +615,8 @@ async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE)
         }
         rr_entries.append(rr_entry)
         
-        # ✅ ОБНОВЛЯЕМ RR ЛИСТ В ЧАТЕ
-        await update_rr_list_in_chat(context)
+        # ✅ ОБНОВЛЯЕМ RR ЛИСТ В ЧАТЕ через application
+        await update_rr_list_in_chat(context.application)
         
         response_text = f"""
 ✅ Запись добавлена в RR лист!
@@ -495,8 +639,8 @@ async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE)
         }
         pd_entries.append(pd_entry)
         
-        # ✅ ОБНОВЛЯЕМ PD ЛИСТ В ЧАТЕ
-        await update_pd_list_in_chat(context)
+        # ✅ ОБНОВЛЯЕМ PD ЛИСТ В ЧАТЕ через application
+        await update_pd_list_in_chat(context.application)
         
         response_text = f"""
 ✅ Запись добавлена в PD лист!
@@ -674,31 +818,6 @@ def setup_schedule(application: Application):
         logging.error(f"❌ Ошибка настройки расписания: {e}")
         return False
 
-async def check_schedule_periodically():
-    """Периодическая проверка и выполнение задач по расписанию"""
-    while True:
-        now = datetime.now(MOSCOW_TZ)
-        current_time = now.time()
-        
-        # Проверяем RR лист (00:00)
-        if current_time.hour == 0 and current_time.minute == 0:
-            logging.info("🕒 Время публикации RR листа!")
-            # Здесь нужно вызвать функцию публикации RR листа
-            # await post_rr_list() - нужно передать context
-        
-        # Проверяем PD лист (05:00)  
-        elif current_time.hour == 5 and current_time.minute == 0:
-            logging.info("🕒 Время публикации PD листа!")
-            # Здесь нужно вызвать функцию публикации PD листа
-        
-        # Проверяем очистку (23:59)
-        elif current_time.hour == 23 and current_time.minute == 59:
-            logging.info("🕒 Время ежедневной очистки!")
-            # Здесь нужно вызвать функцию очистки
-        
-        # Ждем 1 минуту перед следующей проверкой
-        await asyncio.sleep(60)
-
 def main():
     """Основная функция запуска бота"""
     try:
@@ -732,8 +851,6 @@ def main():
             logging.info("✅ Job-queue расписание настроено")
         except Exception as e:
             logging.warning(f"⚠️ Job-queue недоступен, используем альтернативный метод: {e}")
-            # Запускаем альтернативный планировщик
-            asyncio.create_task(check_schedule_periodically())
         
         # Запускаем бота
         logging.info("🤖 Запускаем бота...")
