@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 from datetime import datetime, time, timedelta
 import pytz
 from dotenv import load_dotenv
@@ -133,9 +134,35 @@ SERVERS = {
 user_states = {}
 rr_entries = []
 pd_entries = []
-# ✅ ДОБАВЛЕНО: Храним ID последних сообщений с листами
-last_rr_message_id = None
-last_pd_message_id = None
+
+# ✅ ИСПРАВЛЕНО: Сохраняем ID сообщений в файл
+MESSAGE_IDS_FILE = 'message_ids.json'
+
+def load_message_ids():
+    """Загружает ID сообщений из файла"""
+    try:
+        if os.path.exists(MESSAGE_IDS_FILE):
+            with open(MESSAGE_IDS_FILE, 'r') as f:
+                data = json.load(f)
+                return data.get('last_rr_message_id'), data.get('last_pd_message_id')
+    except Exception as e:
+        logging.error(f"❌ Ошибка загрузки ID сообщений: {e}")
+    return None, None
+
+def save_message_ids(rr_id, pd_id):
+    """Сохраняет ID сообщений в файл"""
+    try:
+        data = {
+            'last_rr_message_id': rr_id,
+            'last_pd_message_id': pd_id
+        }
+        with open(MESSAGE_IDS_FILE, 'w') as f:
+            json.dump(data, f)
+    except Exception as e:
+        logging.error(f"❌ Ошибка сохранения ID сообщений: {e}")
+
+# ✅ ИСПРАВЛЕНО: Загружаем ID сообщений при запуске
+last_rr_message_id, last_pd_message_id = load_message_ids()
 
 # Время постинга и очистки
 PD_POST_TIME = time(5, 0, 0, tzinfo=MOSCOW_TZ)
@@ -399,26 +426,34 @@ async def update_rr_list_in_chat(application: Application):
         rr_text = await format_rr_list()
         
         if last_rr_message_id:
-            # ✅ ВСЕГДА РЕДАКТИРУЕМ существующее сообщение
-            await application.bot.edit_message_text(
-                chat_id=CHAT_ID,
-                message_id=last_rr_message_id,
-                text=rr_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            logging.info("✅ RR лист ОБНОВЛЕН в чате (редактирование)")
-        else:
-            # ✅ Если сообщения нет - создаем новое и запоминаем ID
-            message = await application.bot.send_message(
-                chat_id=CHAT_ID,
-                text=rr_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            last_rr_message_id = message.message_id
-            await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_rr_message_id)
-            logging.info("✅ RR лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
+            try:
+                # ✅ Пытаемся отредактировать существующее сообщение
+                await application.bot.edit_message_text(
+                    chat_id=CHAT_ID,
+                    message_id=last_rr_message_id,
+                    text=rr_text,
+                    parse_mode='HTML',
+                    reply_markup=create_add_button()
+                )
+                logging.info("✅ RR лист ОБНОВЛЕН в чате (редактирование)")
+                return
+            except Exception as e:
+                # ✅ Если сообщение не найдено (удалено), создаем новое
+                logging.warning(f"⚠️ Сообщение RR не найдено, создаем новое: {e}")
+                last_rr_message_id = None
+        
+        # ✅ Если сообщения нет - создаем новое и запоминаем ID
+        message = await application.bot.send_message(
+            chat_id=CHAT_ID,
+            text=rr_text,
+            parse_mode='HTML',
+            reply_markup=create_add_button()
+        )
+        last_rr_message_id = message.message_id
+        await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_rr_message_id)
+        # ✅ Сохраняем ID в файл
+        save_message_ids(last_rr_message_id, last_pd_message_id)
+        logging.info("✅ RR лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
             
     except Exception as e:
         logging.error(f"❌ Ошибка обновления RR листа: {e}")
@@ -431,26 +466,34 @@ async def update_pd_list_in_chat(application: Application):
         pd_text = await format_pd_list()
         
         if last_pd_message_id:
-            # ✅ ВСЕГДА РЕДАКТИРУЕМ существующее сообщение
-            await application.bot.edit_message_text(
-                chat_id=CHAT_ID,
-                message_id=last_pd_message_id,
-                text=pd_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            logging.info("✅ PD лист ОБНОВЛЕН в чате (редактирование)")
-        else:
-            # ✅ Если сообщения нет - создаем новое и запоминаем ID
-            message = await application.bot.send_message(
-                chat_id=CHAT_ID,
-                text=pd_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            last_pd_message_id = message.message_id
-            await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_pd_message_id)
-            logging.info("✅ PD лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
+            try:
+                # ✅ Пытаемся отредактировать существующее сообщение
+                await application.bot.edit_message_text(
+                    chat_id=CHAT_ID,
+                    message_id=last_pd_message_id,
+                    text=pd_text,
+                    parse_mode='HTML',
+                    reply_markup=create_add_button()
+                )
+                logging.info("✅ PD лист ОБНОВЛЕН в чате (редактирование)")
+                return
+            except Exception as e:
+                # ✅ Если сообщение не найдено (удалено), создаем новое
+                logging.warning(f"⚠️ Сообщение PD не найдено, создаем новое: {e}")
+                last_pd_message_id = None
+        
+        # ✅ Если сообщения нет - создаем новое и запоминаем ID
+        message = await application.bot.send_message(
+            chat_id=CHAT_ID,
+            text=pd_text,
+            parse_mode='HTML',
+            reply_markup=create_add_button()
+        )
+        last_pd_message_id = message.message_id
+        await application.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_pd_message_id)
+        # ✅ Сохраняем ID в файл
+        save_message_ids(last_rr_message_id, last_pd_message_id)
+        logging.info("✅ PD лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
             
     except Exception as e:
         logging.error(f"❌ Ошибка обновления PD листа: {e}")
@@ -464,26 +507,34 @@ async def update_rr_list_with_context(context: ContextTypes.DEFAULT_TYPE):
         rr_text = await format_rr_list()
         
         if last_rr_message_id:
-            # ✅ ВСЕГДА РЕДАКТИРУЕМ существующее сообщение
-            await context.bot.edit_message_text(
-                chat_id=CHAT_ID,
-                message_id=last_rr_message_id,
-                text=rr_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            logging.info("✅ RR лист ОБНОВЛЕН в чате (редактирование)")
-        else:
-            # ✅ Если сообщения нет - создаем новое и запоминаем ID
-            message = await context.bot.send_message(
-                chat_id=CHAT_ID,
-                text=rr_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            last_rr_message_id = message.message_id
-            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_rr_message_id)
-            logging.info("✅ RR лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
+            try:
+                # ✅ Пытаемся отредактировать существующее сообщение
+                await context.bot.edit_message_text(
+                    chat_id=CHAT_ID,
+                    message_id=last_rr_message_id,
+                    text=rr_text,
+                    parse_mode='HTML',
+                    reply_markup=create_add_button()
+                )
+                logging.info("✅ RR лист ОБНОВЛЕН в чате (редактирование)")
+                return
+            except Exception as e:
+                # ✅ Если сообщение не найдено (удалено), создаем новое
+                logging.warning(f"⚠️ Сообщение RR не найдено, создаем новое: {e}")
+                last_rr_message_id = None
+        
+        # ✅ Если сообщения нет - создаем новое и запоминаем ID
+        message = await context.bot.send_message(
+            chat_id=CHAT_ID,
+            text=rr_text,
+            parse_mode='HTML',
+            reply_markup=create_add_button()
+        )
+        last_rr_message_id = message.message_id
+        await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_rr_message_id)
+        # ✅ Сохраняем ID в файл
+        save_message_ids(last_rr_message_id, last_pd_message_id)
+        logging.info("✅ RR лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
             
     except Exception as e:
         logging.error(f"❌ Ошибка обновления RR листа: {e}")
@@ -496,26 +547,34 @@ async def update_pd_list_with_context(context: ContextTypes.DEFAULT_TYPE):
         pd_text = await format_pd_list()
         
         if last_pd_message_id:
-            # ✅ ВСЕГДА РЕДАКТИРУЕМ существующее сообщение
-            await context.bot.edit_message_text(
-                chat_id=CHAT_ID,
-                message_id=last_pd_message_id,
-                text=pd_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            logging.info("✅ PD лист ОБНОВЛЕН в чате (редактирование)")
-        else:
-            # ✅ Если сообщения нет - создаем новое и запоминаем ID
-            message = await context.bot.send_message(
-                chat_id=CHAT_ID,
-                text=pd_text,
-                parse_mode='HTML',
-                reply_markup=create_add_button()
-            )
-            last_pd_message_id = message.message_id
-            await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_pd_message_id)
-            logging.info("✅ PD лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
+            try:
+                # ✅ Пытаемся отредактировать существующее сообщение
+                await context.bot.edit_message_text(
+                    chat_id=CHAT_ID,
+                    message_id=last_pd_message_id,
+                    text=pd_text,
+                    parse_mode='HTML',
+                    reply_markup=create_add_button()
+                )
+                logging.info("✅ PD лист ОБНОВЛЕН в чате (редактирование)")
+                return
+            except Exception as e:
+                # ✅ Если сообщение не найдено (удалено), создаем новое
+                logging.warning(f"⚠️ Сообщение PD не найдено, создаем новое: {e}")
+                last_pd_message_id = None
+        
+        # ✅ Если сообщения нет - создаем новое и запоминаем ID
+        message = await context.bot.send_message(
+            chat_id=CHAT_ID,
+            text=pd_text,
+            parse_mode='HTML',
+            reply_markup=create_add_button()
+        )
+        last_pd_message_id = message.message_id
+        await context.bot.pin_chat_message(chat_id=CHAT_ID, message_id=last_pd_message_id)
+        # ✅ Сохраняем ID в файл
+        save_message_ids(last_rr_message_id, last_pd_message_id)
+        logging.info("✅ PD лист ОТПРАВЛЕН и закреплен в чате (новое сообщение)")
             
     except Exception as e:
         logging.error(f"❌ Ошибка обновления PD листа: {e}")
@@ -572,6 +631,7 @@ async def daily_cleanup(context: ContextTypes.DEFAULT_TYPE):
     # ✅ Очищаем ID сообщений при сбросе
     last_rr_message_id = None
     last_pd_message_id = None
+    save_message_ids(None, None)
     
     try:
         today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
