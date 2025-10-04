@@ -130,20 +130,11 @@ def create_main_menu():
     return InlineKeyboardMarkup(keyboard)
 
 def create_server_keyboard():
-    """Создает клавиатуру с серверами"""
+    """Создает клавиатуру с серверами в столбик"""
     keyboard = []
-    row = []
     
-    for i, (emoji, name) in enumerate(SERVERS.items()):
-        btn = InlineKeyboardButton(emoji, callback_data=f"server_{name}")
-        row.append(btn)
-        
-        if (i + 1) % 3 == 0:
-            keyboard.append(row)
-            row = []
-    
-    if row:
-        keyboard.append(row)
+    for emoji, name in SERVERS.items():
+        keyboard.append([InlineKeyboardButton(emoji, callback_data=f"server_{name}")])
     
     keyboard.append([InlineKeyboardButton("⬅️ Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(keyboard)
@@ -184,6 +175,14 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     keyboard = create_main_menu()
     await update.message.reply_text(help_text, reply_markup=keyboard)
+
+def get_current_list_type():
+    """Определяет текущий актуальный тип листа"""
+    now = datetime.now(MOSCOW_TZ).time()
+    if time(0, 0) <= now <= time(5, 0):
+        return 'rr'
+    else:
+        return 'pd'
 
 async def format_rr_list():
     """Форматирует RR лист для постинга"""
@@ -348,7 +347,7 @@ async def post_rr_list(context: ContextTypes.DEFAULT_TYPE):
     
     if rr_entries:
         await update_rr_list_in_chat(context)
-        rr_entries.clear()
+        # Не очищаем записи - они будут актуальны до очистки в 23:59
     else:
         logging.info("ℹ️ Нет записей для RR листа")
 
@@ -358,7 +357,7 @@ async def post_pd_list(context: ContextTypes.DEFAULT_TYPE):
     
     if pd_entries:
         await update_pd_list_in_chat(context)
-        pd_entries.clear()
+        # Не очищаем записи - они будут актуальны до очистки в 23:59
     else:
         logging.info("ℹ️ Нет записей для PD листа")
 
@@ -420,10 +419,10 @@ async def view_lists_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     
-    now = datetime.now(MOSCOW_TZ).time()
+    current_type = get_current_list_type()
     today = datetime.now(MOSCOW_TZ).strftime("%d.%m.%Y")
     
-    if time(0, 0) <= now <= time(5, 0):
+    if current_type == 'rr':
         if rr_entries:
             rr_text = await format_rr_list()
             text = f"📋 <b>Текущий RR лист на {today}</b> (будет опубликован в 00:00):\n\n{rr_text}"
@@ -446,11 +445,22 @@ async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = update.message.from_user.id
     
     if user_id not in user_states or user_states[user_id]['step'] != 'description':
-        await update.message.reply_text("❌ Неизвестная команда. Используйте /start")
+        # Игнорируем все текстовые сообщения кроме тех, которые ожидаем как описание
         return
     
     description = update.message.text
     user_state = user_states[user_id]
+    
+    # Проверяем, что пользователь заполняет актуальный лист
+    current_type = get_current_list_type()
+    if user_state['type'] != current_type:
+        await update.message.reply_text(
+            f"❌ Сейчас время для {current_type.upper()} листа!\n"
+            f"Вы пытаетесь заполнить {user_state['type'].upper()} лист.\n"
+            f"Используйте соответствующую кнопку в меню."
+        )
+        del user_states[user_id]
+        return
     
     if user_state['type'] == 'rr':
         # Для RR листа
@@ -518,9 +528,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     
     if data == "fill_rr":
-        now = datetime.now(MOSCOW_TZ).time()
-        if time(5, 1) <= now <= time(23, 59):
-            await query.edit_message_text("❌ Сейчас время для PD листа!\nRR лист доступен с 00:00 до 05:00 МСК.")
+        current_type = get_current_list_type()
+        if current_type != 'rr':
+            await query.edit_message_text(
+                f"❌ Сейчас время для {current_type.upper()} листа!\n"
+                f"RR лист доступен с 00:00 до 05:00 МСК."
+            )
             return
         
         user_states[user_id] = {'type': 'rr', 'step': 'server'}
@@ -528,9 +541,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("🎮 Выберите сервер для RR листа:", reply_markup=keyboard)
         
     elif data == "fill_pd":
-        now = datetime.now(MOSCOW_TZ).time()
-        if time(0, 0) <= now <= time(5, 0):
-            await query.edit_message_text("❌ Сейчас время для RR листа!\nPD лист доступен с 05:01 до 23:59 МСК.")
+        current_type = get_current_list_type()
+        if current_type != 'pd':
+            await query.edit_message_text(
+                f"❌ Сейчас время для {current_type.upper()} листа!\n"
+                f"PD лист доступен с 05:01 до 23:59 МСК."
+            )
             return
         
         user_states[user_id] = {'type': 'pd', 'step': 'category'}
@@ -689,14 +705,20 @@ def main():
         # Создаем Application
         application = Application.builder().token(BOT_TOKEN).build()
         
-        # Добавляем обработчики
+        # ✅ ДОБАВЛЯЕМ ТОЛЬКО НУЖНЫЕ ОБРАБОТЧИКИ
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(CommandHandler("list_rr", list_rr_command))
         application.add_handler(CommandHandler("list_pd", list_pd_command))
         
+        # Обработчик кнопок
         application.add_handler(CallbackQueryHandler(button_handler))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_description))
+        
+        # ✅ Обработчик текстовых сообщений ТОЛЬКО для ожидаемых описаний
+        application.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND, 
+            handle_description
+        ))
         
         application.add_error_handler(error_handler)
         
