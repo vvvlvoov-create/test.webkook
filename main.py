@@ -130,11 +130,22 @@ def create_main_menu():
     return InlineKeyboardMarkup(keyboard)
 
 def create_server_keyboard():
-    """Создает клавиатуру с серверами в столбик"""
+    """Создает клавиатуру с серверами по 4 в ряд"""
     keyboard = []
+    row = []
     
-    for emoji, name in SERVERS.items():
-        keyboard.append([InlineKeyboardButton(emoji, callback_data=f"server_{name}")])
+    for i, (emoji, name) in enumerate(SERVERS.items()):
+        btn = InlineKeyboardButton(emoji, callback_data=f"server_{name}")
+        row.append(btn)
+        
+        # ✅ ИСПРАВЛЕНО: 4 кнопки в ряд
+        if (i + 1) % 4 == 0:
+            keyboard.append(row)
+            row = []
+    
+    # Добавляем оставшиеся кнопки
+    if row:
+        keyboard.append(row)
     
     keyboard.append([InlineKeyboardButton("⬅️ Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(keyboard)
@@ -254,7 +265,7 @@ async def format_rr_list():
         "🍺 ʀᴏsᴛᴏᴠ -",
         "🎧 sᴀᴍᴀʀᴀ -",
         "🏛 ᴋᴀᴢᴀɴ -",
-        "🌊 sᴏᴄʬɪ -",
+        "🌊 sᴏᴄʜɪ -",
         "🌪 ᴜғᴀ -",
         "🌉 sᴘʙ -",
         "🌇 ᴍᴏsᴄᴏᴡ -",
@@ -351,8 +362,8 @@ async def format_pd_list():
 
 def create_add_button():
     """Создает кнопку Добавить слёт"""
-    # ✅ ИСПРАВЛЕНО: Изменена ссылка на @avtolists_bot
-    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", url="https://t.me/avtolists_bot")]]
+    # ✅ ИСПРАВЛЕНО: Используем switch_inline_query для плавающих кнопок
+    keyboard = [[InlineKeyboardButton("➕ Добавить слёт", switch_inline_query_current_chat="")]]
     return InlineKeyboardMarkup(keyboard)
 
 # ✅ Функция обновления листов в чате
